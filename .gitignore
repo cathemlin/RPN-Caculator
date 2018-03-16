@@ -1,0 +1,32 @@
+# Maven
+#log/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+#Java class
+*.class
+
+
+# Mac
+.DS_Store
+
+
+# Exclude maven wrapper
+!/.mvn/wrapper/maven-wrapper.jar
