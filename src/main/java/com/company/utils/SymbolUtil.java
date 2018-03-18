@@ -9,19 +9,20 @@ import java.util.regex.Pattern;
 /**
  * Created by daxiang on 18-3-16.
  */
-public class StringOperatorUtil {
+public class SymbolUtil {
 
     public static boolean isOperator(String str){
         return EnumOperator.getOperator(str)==null? false:true;
     }
 
     public static boolean isNumber(String str){
-            Pattern pattern = Pattern.compile("-?[0-9]+.?[0-9]*");
-            Matcher isNum = pattern.matcher(str);
-            if( !isNum.matches() ){
-                return false;
-            }
-            return true;
+        Pattern pattern = Pattern.compile("-?[0-9]+.?[0-9]*");
+        Matcher isNum = pattern.matcher(str);
+        return isNum.matches();
+    }
+
+    public static boolean isValidSymbol(String str){
+        return isNumber(str)||isOperator(str);
     }
 
     public static String getStackContent(Stack stack){

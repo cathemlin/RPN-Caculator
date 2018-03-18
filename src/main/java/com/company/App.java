@@ -1,9 +1,10 @@
 package com.company;
 
 import com.company.common.EnumOperator;
-import com.company.common.RpnCalc;
-import com.company.utils.EnumUtil;
-import com.company.utils.StringOperatorUtil;
+import com.company.exception.InSufficientNumberException;
+import com.company.exception.InvalidSymbolException;
+import com.company.utils.RpnMath;
+import com.company.utils.SymbolUtil;
 
 import java.util.Stack;
 
@@ -11,68 +12,51 @@ import java.util.Stack;
  * Hello world!
  *
  */
-public class App 
-{
+public class App {
     public static void main( String[] args ){
 
-
-        String argExpression="-4 sqrt ";
-        String[] array= argExpression.trim().split(" ");
+        String expression="1 2 3 4 5 * * * * undo undo";
+        String[] array= expression.trim().split(" ");
 
         Stack<String> stack= new Stack<String>();
         Stack<String> undoStack= new Stack<String>();
-        final String undoSingle="undoSingle";
-        final String undoRet1= "undoRet1";//calc needs one number;
-        final String undoRet2= "undoRet2";//calc needs two numbers;
-        String str1=null, str2=null;
-        for(String arr: array) {
-            if(StringOperatorUtil.isNumber(arr)){
-                stack.push(arr);
-                undoStack.push(undoSingle);
-            }else if (StringOperatorUtil.isOperator(arr)){
-                EnumOperator enumOperator= EnumOperator.getOperator(arr);
-                int i= EnumUtil.needNumbers(enumOperator);
+        String arr=null;
+        int index=0;
+        try {
+            for(;index<array.length;++index){
+                arr=array[index];
+//                if(arr.equals(""))
+//                    continue;//get rid of empty string input
 
-                if(i==2){
-                    undoStack.push(enumOperator.getStrCode());
-                    stack.push(RpnCalc.twoNumsCal(undoStack.push(stack.pop()),undoStack.push(stack.pop()),enumOperator));
-                    undoStack.push(undoRet2);
-                }else if(enumOperator==EnumOperator.SQRT){
-                    undoStack.push(enumOperator.getStrCode());
-                    undoStack.push(stack.pop());
-                    stack.push(RpnCalc.sqrtCal(undoStack.peek()));
-                    undoStack.push(undoRet1);
-                }else if(enumOperator==EnumOperator.CLEAR){
-                    stack.clear();
-                    undoStack.clear();
-                }else if(enumOperator==EnumOperator.UNDO){
+                if(!SymbolUtil.isValidSymbol(arr))
+                    throw new InvalidSymbolException("Invalid symbol:", arr);
 
-                    if(undoSingle.equals(undoStack.peek())){//undo one number
-                        undoStack.pop();
-                        stack.pop();
-                    }else if(undoRet2.equals(undoStack.peek())){//undo one operator needs tow numbers
-                        stack.pop();//pop out the result
-                        undoStack.pop();//pop out undoRet2 tag
-                        stack.push(undoStack.pop());//push back the first number
-                        stack.push(undoStack.pop());//push back the second number
-                        undoStack.pop();//pop out the operator
-                    }else if(undoRet1.equals(undoStack.peek())){//undo one operator needs one numbers
-                        stack.pop();//pop out the result
-                        undoStack.pop();//pop out undoRet1 tag
-                        stack.push(undoStack.pop());//push back the number
-                        undoStack.pop();//pop out the operator
+                if (SymbolUtil.isNumber(arr)) {
+                    RpnMath.pushNumber(stack,undoStack,arr);
+                } else if (SymbolUtil.isOperator(arr)) {
+                    EnumOperator enumOperator = EnumOperator.getOperator(arr);
+                    int i = enumOperator.getNeedNumbers();
+
+                    if (i == 2) {
+                        RpnMath.binaryOperation(stack,undoStack,enumOperator);
+                    } else if (enumOperator == EnumOperator.SQRT) {
+                        RpnMath.sqrtOperation(stack,undoStack,enumOperator);
+                    } else if (enumOperator == EnumOperator.CLEAR) {
+                        RpnMath.clearOperation(stack,undoStack);
+                    } else if (enumOperator == EnumOperator.UNDO) {
+                        RpnMath.undoOperation(stack, undoStack);
                     }
-
                 }
 
-            }else {
-                //非法符号
-                System.out.println("Warning! invalid input string: "+ arr );
-                System.out.println(StringOperatorUtil.getStackContent(stack));
-                break;
             }
-
-            System.out.println(StringOperatorUtil.getStackContent(stack));
+        }catch (InvalidSymbolException ex){
+            System.out.println(ex.getMsg()+ex.getSymbol());
+        }catch (InSufficientNumberException ex){
+            int position= 2*index+1;//including the space between input strings
+            System.out.println("operator <"+ex.getOperator()+"> (position:<"+position+">):insufficient numbers");
+        }catch (Exception e) {
+            e.printStackTrace();
         }
+        System.out.println(SymbolUtil.getStackContent(stack));
     }
 }
